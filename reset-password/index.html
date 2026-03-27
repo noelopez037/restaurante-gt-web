@@ -69,9 +69,9 @@
       Abre la app para crear tu nueva contraseña.
     </p>
 
-    <button class="btn btn-primary" id="btnAbrir" onclick="abrirApp()">
+    <a class="btn btn-primary" id="btnAbrir" href="#">
       📱 Abrir en la App
-    </button>
+    </a>
 
     <div class="status" id="status"></div>
   </div>
@@ -101,31 +101,26 @@
 
     const deepLink = construirDeepLink();
 
-    // Si no hay token válido, mostrar error
+    const btn = document.getElementById('btnAbrir');
+
     if (!deepLink) {
       document.getElementById('msg').textContent =
         'Este link no es válido o ya expiró. Solicita un nuevo correo de recuperación desde la app.';
-      document.getElementById('btnAbrir').disabled = true;
+      btn.removeAttribute('href');
+      btn.style.background = '#3e4042';
+      btn.style.color = '#b0b3b8';
+      btn.style.cursor = 'not-allowed';
+      btn.style.pointerEvents = 'none';
+    } else {
+      btn.setAttribute('href', deepLink);
+      btn.addEventListener('click', function () {
+        setTimeout(function () {
+          document.getElementById('status').textContent =
+            'La app no se abrió. Asegúrate de tener RestauranteGT instalado e intenta de nuevo.';
+        }, 2500);
+      });
     }
 
-    function abrirApp() {
-      if (!deepLink) return;
-
-      const status = document.getElementById('status');
-      status.textContent = 'Abriendo la app...';
-      window.location.href = deepLink;
-
-      // Si después de 2.5s sigue aquí, la app no está instalada
-      setTimeout(function () {
-        status.textContent = 'La app no se abrió. Asegúrate de tener RestauranteGT instalado e intenta de nuevo.';
-      }, 2500);
-    }
-
-    // En celular, abrir automáticamente
-    const isMovil = /iPad|iPhone|iPod|Android/.test(navigator.userAgent);
-    if (isMovil && deepLink) {
-      setTimeout(abrirApp, 800);
-    }
   </script>
 </body>
 </html>
