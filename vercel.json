@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/invite", "destination": "/invite/index.html" },
-    { "source": "/invite/", "destination": "/invite/index.html" }
+    { "source": "/invite/", "destination": "/invite/index.html" },
+    { "source": "/reset-password", "destination": "/reset-password/index.html" },
+    { "source": "/reset-password/", "destination": "/reset-password/index.html" }
   ]
 }
