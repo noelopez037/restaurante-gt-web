@@ -69,9 +69,9 @@
       Abre la app para crear tu nueva contraseña.
     </p>
 
-    <a class="btn btn-primary" id="btnAbrir" href="#">
+    <button class="btn btn-primary" id="btnAbrir">
       📱 Abrir en la App
-    </a>
+    </button>
 
     <div class="status" id="status"></div>
   </div>
@@ -106,14 +106,10 @@
     if (!deepLink) {
       document.getElementById('msg').textContent =
         'Este link no es válido o ya expiró. Solicita un nuevo correo de recuperación desde la app.';
-      btn.removeAttribute('href');
-      btn.style.background = '#3e4042';
-      btn.style.color = '#b0b3b8';
-      btn.style.cursor = 'not-allowed';
-      btn.style.pointerEvents = 'none';
+      btn.disabled = true;
     } else {
-      btn.setAttribute('href', deepLink);
       btn.addEventListener('click', function () {
+        window.location.href = deepLink;
         setTimeout(function () {
           document.getElementById('status').textContent =
             'La app no se abrió. Asegúrate de tener RestauranteGT instalado e intenta de nuevo.';
