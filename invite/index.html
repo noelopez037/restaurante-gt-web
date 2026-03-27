@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unirse a RestauranteGT</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #18191a;
+      color: #e4e6eb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #242526;
+      border: 1px solid #3e4042;
+      border-radius: 16px;
+      padding: 40px 32px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo { font-size: 48px; margin-bottom: 20px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #e4e6eb; }
+    .subtitle { color: #b0b3b8; font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px 24px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 12px;
+      font-family: inherit;
+    }
+    .btn-primary { background: #2d88ff; color: #ffffff; }
+    .btn-primary:hover { background: #1877f2; }
+    .btn-primary:disabled { background: #3e4042; color: #b0b3b8; cursor: not-allowed; }
+    .btn-secondary { background: #3e4042; color: #e4e6eb; font-size: 14px; }
+    .btn-secondary:hover { background: #4a4b4d; }
+    .status { margin-top: 20px; font-size: 13px; color: #b0b3b8; line-height: 1.5; min-height: 20px; }
+    .status.error { color: #f44336; }
+    .badge {
+      display: inline-block;
+      background: #2d88ff22;
+      color: #2d88ff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .instrucciones {
+      display: none;
+      text-align: left;
+      background: #18191a;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .instrucciones p { font-size: 13px; color: #b0b3b8; margin-bottom: 8px; line-height: 1.5; }
+    .instrucciones strong { color: #e4e6eb; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🍽️</div>
+    <div class="badge">Invitación de restaurante</div>
+    <h1>Te invitaron a<br/>RestauranteGT</h1>
+    <p class="subtitle" id="msg">
+      Abre la app en tu celular para aceptar la invitación y empezar a trabajar.
+    </p>
+
+    <button class="btn btn-primary" id="btnAbrir" onclick="abrirApp()">
+      📱 Abrir en la App
+    </button>
+
+    <a class="btn btn-secondary"
+       href="https://apps.apple.com/app/restaurantegt/id000000000"
+       id="btnDescargarIOS"
+       style="display:none;"
+       target="_blank">
+      Descargar en App Store (iOS)
+    </a>
+
+    <a class="btn btn-secondary"
+       href="https://play.google.com/store/apps/details?id=com.restaurantegt"
+       id="btnDescargarAndroid"
+       style="display:none;"
+       target="_blank">
+      Descargar en Google Play (Android)
+    </a>
+
+    <div class="status" id="status"></div>
+
+    <div class="instrucciones" id="instrucciones">
+      <p><strong>¿La app no abrió?</strong></p>
+      <p>1. Descarga la app usando el botón de arriba.</p>
+      <p>2. Una vez instalada, vuelve a este link y toca "Abrir en la App".</p>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    // Si no hay token, mostrar error
+    if (!token) {
+      document.getElementById('msg').textContent =
+        'Este link no es válido. Pide al dueño del restaurante que te envíe una nueva invitación.';
+      document.getElementById('btnAbrir').disabled = true;
+    }
+
+    function abrirApp() {
+      if (!token) return;
+
+      const deepLink = 'restaurante-gt://invite?token=' + token;
+      const status = document.getElementById('status');
+      const instrucciones = document.getElementById('instrucciones');
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+
+      status.textContent = 'Abriendo la app...';
+      window.location.href = deepLink;
+
+      // Si después de 2.5s sigue aquí, la app no está instalada
+      setTimeout(function () {
+        status.textContent = 'La app no se abrió. ¿Ya la tienes instalada?';
+        instrucciones.style.display = 'block';
+
+        if (isIOS) {
+          document.getElementById('btnDescargarIOS').style.display = 'block';
+        } else if (isAndroid) {
+          document.getElementById('btnDescargarAndroid').style.display = 'block';
+        } else {
+          // Desktop — mostrar ambos
+          document.getElementById('btnDescargarIOS').style.display = 'block';
+          document.getElementById('btnDescargarAndroid').style.display = 'block';
+        }
+      }, 2500);
+    }
+
+    // En celular, intentar abrir automáticamente
+    const isMovil = /iPad|iPhone|iPod|Android/.test(navigator.userAgent);
+    if (isMovil && token) {
+      setTimeout(abrirApp, 800);
+    }
+  </script>
+</body>
+</html>
