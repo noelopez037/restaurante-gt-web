@@ -28,26 +28,7 @@
     }
     .logo { font-size: 48px; margin-bottom: 20px; }
     h1 { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #e4e6eb; }
-    .subtitle { color: #b0b3b8; font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 15px 24px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      transition: background 0.15s;
-      margin-bottom: 12px;
-      font-family: inherit;
-    }
-    .btn-primary { background: #2d88ff; color: #ffffff; }
-    .btn-primary:hover { background: #1877f2; }
-    .btn-primary:disabled { background: #3e4042; color: #b0b3b8; cursor: not-allowed; }
-    .status { margin-top: 20px; font-size: 13px; color: #b0b3b8; line-height: 1.5; min-height: 20px; }
-    .status.error { color: #f44336; }
+    .subtitle { color: #b0b3b8; font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
     .badge {
       display: inline-block;
       background: #2d88ff22;
@@ -58,77 +39,154 @@
       border-radius: 20px;
       margin-bottom: 20px;
     }
+    .form { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+    .input {
+      width: 100%;
+      background: #18191a;
+      border: 1.5px solid #3e4042;
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: #e4e6eb;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+    }
+    .input:focus { border-color: #2d88ff; }
+    .input.error { border-color: #f44336; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px 24px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 4px;
+    }
+    .btn-primary { background: #2d88ff; color: #fff; }
+    .btn-primary:disabled { background: #3e4042; color: #b0b3b8; cursor: not-allowed; }
+    .error-text { color: #f44336; font-size: 13px; text-align: center; min-height: 18px; }
+    /* Estado de éxito */
+    .success { display: none; }
+    .success .logo-big { font-size: 56px; margin-bottom: 16px; }
+    .success h1 { margin-bottom: 8px; }
+    .success .subtitle { margin-bottom: 0; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">🔐</div>
-    <div class="badge">Seguridad de cuenta</div>
-    <h1>Cambiar contraseña</h1>
-    <p class="subtitle" id="msg">
-      Abre la app para crear tu nueva contraseña.
-    </p>
 
-    <button class="btn btn-primary" id="btnAbrir">
-      📱 Abrir en la App
-    </button>
+    <!-- Estado: link inválido -->
+    <div id="viewInvalid" style="display:none">
+      <div class="logo">⚠️</div>
+      <h1>Enlace inválido</h1>
+      <p class="subtitle">Este enlace no es válido o ya expiró.<br>Solicita uno nuevo desde la app.</p>
+    </div>
 
-    <div class="status" id="status"></div>
+    <!-- Estado: formulario -->
+    <div id="viewForm">
+      <div class="logo">🔐</div>
+      <div class="badge">Seguridad de cuenta</div>
+      <h1>Nueva contraseña</h1>
+      <p class="subtitle">Ingresa tu nueva contraseña para RestauranteGT.</p>
+
+      <div class="form">
+        <input class="input" type="password" id="password" placeholder="Nueva contraseña" autocomplete="new-password" />
+        <input class="input" type="password" id="confirm" placeholder="Confirmar contraseña" autocomplete="new-password" />
+        <p class="error-text" id="errorText"></p>
+        <button class="btn btn-primary" id="btnGuardar">Guardar contraseña</button>
+      </div>
+    </div>
+
+    <!-- Estado: éxito -->
+    <div id="viewSuccess" class="success">
+      <div class="logo-big">✅</div>
+      <h1>Contraseña actualizada</h1>
+      <p class="subtitle">Tu contraseña fue cambiada exitosamente.<br>Ya puedes iniciar sesión en la app.</p>
+    </div>
+
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    // Supabase redirige con ?code=xxx o a veces con #access_token=xxx
-    const params = new URLSearchParams(window.location.search);
+    const SUPABASE_URL  = 'https://fbudixtdtcqnluprqifp.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZidWRpeHRkdGNxbmx1cHJxaWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjcwMjIsImV4cCI6MjA4OTYwMzAyMn0.4DpwMkaYOTf-C-R4pD17-QnnfbeLYrxUtOaRKr30_6k';
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    const params     = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
 
-    const code = params.get('code');
-    const accessToken = hashParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token');
-    const type = params.get('type') || hashParams.get('type');
+    const code         = params.get('code');
+    const accessToken  = hashParams.get('access_token') || params.get('access_token');
+    const refreshToken = hashParams.get('refresh_token') || params.get('refresh_token');
 
-    // Construir el deep link según lo que venga
-    function construirDeepLink() {
-      if (code) {
-        return 'restaurante-gt://reset-password?code=' + code;
-      }
-      if (accessToken) {
-        return 'restaurante-gt://reset-password?access_token=' + accessToken
-          + '&refresh_token=' + (refreshToken || '')
-          + '&type=' + (type || 'recovery');
-      }
-      return null;
-    }
-
-    const deepLink = construirDeepLink();
-
-    const btn = document.getElementById('btnAbrir');
-
-    if (!deepLink) {
-      document.getElementById('msg').textContent =
-        'Este link no es válido o ya expiró. Solicita un nuevo correo de recuperación desde la app.';
-      btn.disabled = true;
-    } else {
-      function abrirApp() {
-        window.location.href = deepLink;
-        setTimeout(function () {
-          document.getElementById('status').textContent =
-            'La app no se abrió. Asegúrate de tener RestauranteGT instalado e intenta de nuevo.';
-        }, 2500);
+    async function init() {
+      try {
+        if (code) {
+          const { error } = await client.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        } else if (accessToken && refreshToken) {
+          const { error } = await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+          if (error) throw error;
+        } else {
+          throw new Error('no_token');
+        }
+      } catch {
+        document.getElementById('viewForm').style.display = 'none';
+        document.getElementById('viewInvalid').style.display = 'block';
+        return;
       }
 
-      // touchend + preventDefault es más confiable en iOS Safari para custom schemes
-      btn.addEventListener('touchstart', function () {}, { passive: true });
-      btn.addEventListener('touchend', function (e) {
-        e.preventDefault();
-        abrirApp();
-      }, { passive: false });
-
-      // fallback para desktop
-      btn.addEventListener('click', function (e) {
-        if (e.pointerType !== '') abrirApp(); // solo si no fue un touch
+      document.getElementById('btnGuardar').addEventListener('click', handleSubmit);
+      document.getElementById('password').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('confirm').focus();
+      });
+      document.getElementById('confirm').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleSubmit();
       });
     }
 
+    async function handleSubmit() {
+      const password = document.getElementById('password').value;
+      const confirm  = document.getElementById('confirm').value;
+      const errorEl  = document.getElementById('errorText');
+      const btn      = document.getElementById('btnGuardar');
+
+      errorEl.textContent = '';
+      document.getElementById('password').classList.remove('error');
+      document.getElementById('confirm').classList.remove('error');
+
+      if (password.length < 6) {
+        errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+        document.getElementById('password').classList.add('error');
+        return;
+      }
+      if (password !== confirm) {
+        errorEl.textContent = 'Las contraseñas no coinciden.';
+        document.getElementById('confirm').classList.add('error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      try {
+        const { error } = await client.auth.updateUser({ password });
+        if (error) throw error;
+        document.getElementById('viewForm').style.display = 'none';
+        document.getElementById('viewSuccess').style.display = 'block';
+      } catch (e) {
+        errorEl.textContent = e.message || 'Error al actualizar la contraseña.';
+        btn.disabled = false;
+        btn.textContent = 'Guardar contraseña';
+      }
+    }
+
+    init();
   </script>
 </body>
 </html>
