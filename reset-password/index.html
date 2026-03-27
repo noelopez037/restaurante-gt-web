@@ -108,12 +108,24 @@
         'Este link no es válido o ya expiró. Solicita un nuevo correo de recuperación desde la app.';
       btn.disabled = true;
     } else {
-      btn.addEventListener('click', function () {
+      function abrirApp() {
         window.location.href = deepLink;
         setTimeout(function () {
           document.getElementById('status').textContent =
             'La app no se abrió. Asegúrate de tener RestauranteGT instalado e intenta de nuevo.';
         }, 2500);
+      }
+
+      // touchend + preventDefault es más confiable en iOS Safari para custom schemes
+      btn.addEventListener('touchstart', function () {}, { passive: true });
+      btn.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        abrirApp();
+      }, { passive: false });
+
+      // fallback para desktop
+      btn.addEventListener('click', function (e) {
+        if (e.pointerType !== '') abrirApp(); // solo si no fue un touch
       });
     }
 
